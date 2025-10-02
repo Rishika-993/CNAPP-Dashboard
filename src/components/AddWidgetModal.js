@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Plus } from 'lucide-react';
 
 const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, onAddWidget }) => {
@@ -11,6 +11,15 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
     type: 'empty'
   });
   const [pendingChanges, setPendingChanges] = useState(new Map());
+
+  // Reset pending changes when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setPendingChanges(new Map());
+      setSearchTerm('');
+      setShowAddForm(false);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -34,42 +43,8 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
     return matchesSearch && matchesTab;
   });
 
-  const handleToggleCheckbox = (categoryId, widget) => {
-    const key = `${categoryId}|||${widget.id}`; // Use a unique separator
-    const currentState = isWidgetChecked(categoryId, widget.id);
-    
-    // Store the pending change
-    setPendingChanges(prev => {
-      const newChanges = new Map(prev);
-      newChanges.set(key, !currentState);
-      return newChanges;
-    });
-  };
-
-  const handleConfirm = () => {
-    // Apply all pending changes
-    pendingChanges.forEach((shouldBeChecked, key) => {
-      const [categoryId, widgetId] = key.split('|||'); // Match the separator
-      const category = state.categories.find(c => c.id === categoryId);
-      const widget = allWidgets.find(w => w.id === widgetId && w.categoryId === categoryId);
-      
-      if (widget) {
-        const currentlyChecked = category?.widgets.some(w => w.id === widgetId) || false;
-        
-        // Only toggle if the state needs to change
-        if (currentlyChecked !== shouldBeChecked) {
-          onToggleWidget(categoryId, widget);
-        }
-      }
-    });
-    
-    // Reset and close
-    setPendingChanges(new Map());
-    onClose();
-  };
-
   const isWidgetChecked = (categoryId, widgetId) => {
-    const key = `${categoryId}|||${widgetId}`; // Use the same separator
+    const key = `${categoryId}|||${widgetId}`;
     
     // Check if there's a pending change for this widget
     if (pendingChanges.has(key)) {
@@ -79,6 +54,18 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
     // Otherwise check the current state
     const category = state.categories.find(c => c.id === categoryId);
     return category?.widgets.some(w => w.id === widgetId) || false;
+  };
+
+  const handleToggleCheckbox = (categoryId, widget) => {
+    const key = `${categoryId}|||${widget.id}`;
+    const currentState = isWidgetChecked(categoryId, widget.id);
+    
+    // Store the pending change
+    setPendingChanges(prev => {
+      const newChanges = new Map(prev);
+      newChanges.set(key, !currentState);
+      return newChanges;
+    });
   };
 
   const handleAddNewWidget = () => {
@@ -101,6 +88,38 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
     setShowAddForm(false);
   };
 
+  const handleConfirm = () => {
+    // Apply all pending changes
+    pendingChanges.forEach((shouldBeChecked, key) => {
+      const [categoryId, widgetId] = key.split('|||');
+      const category = state.categories.find(c => c.id === categoryId);
+      const widget = allWidgets.find(w => w.id === widgetId && w.categoryId === categoryId);
+      
+      if (widget) {
+        const currentlyChecked = category?.widgets.some(w => w.id === widgetId) || false;
+        
+        // Only toggle if the state needs to change
+        if (currentlyChecked !== shouldBeChecked) {
+          onToggleWidget(categoryId, widget);
+        }
+      }
+    });
+    
+    // Reset and close
+    setPendingChanges(new Map());
+    setSearchTerm('');
+    setShowAddForm(false);
+    onClose();
+  };
+
+  const handleCancel = () => {
+    setPendingChanges(new Map());
+    setSearchTerm('');
+    setShowAddForm(false);
+    setNewWidget({ name: '', text: '', type: 'empty' });
+    onClose();
+  };
+
   const activeCategory = categories.find(c => c.id === activeTab);
 
   return (
@@ -110,7 +129,7 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
         <div className="flex justify-between items-center p-4 border-b bg-blue-900 text-white">
           <h2 className="font-semibold text-lg">Add Widget</h2>
           <button 
-            onClick={onClose} 
+            onClick={handleCancel} 
             className="p-1 hover:bg-blue-800 rounded transition-colors"
           >
             <X size={20} />
@@ -268,7 +287,7 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
         {/* Footer */}
         <div className="flex justify-end gap-3 p-4 border-t bg-gray-50">
           <button
-            onClick={onClose}
+            onClick={handleCancel}
             className="px-5 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors font-medium"
           >
             Cancel
