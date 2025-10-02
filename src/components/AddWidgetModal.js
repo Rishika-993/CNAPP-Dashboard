@@ -1,14 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { X, Plus } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { X, Plus } from "lucide-react";
 
-const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, onAddWidget }) => {
-  const [activeTab, setActiveTab] = useState('cspm');
-  const [searchTerm, setSearchTerm] = useState('');
+const AddWidgetModal = ({
+  isOpen,
+  onClose,
+  categories,
+  state,
+  onToggleWidget,
+  onAddWidget,
+}) => {
+  const [activeTab, setActiveTab] = useState("cspm");
+  const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [newWidget, setNewWidget] = useState({
-    name: '',
-    text: '',
-    type: 'empty'
+    name: "",
+    text: "",
+    type: "empty",
   });
   const [pendingChanges, setPendingChanges] = useState(new Map());
 
@@ -16,7 +23,7 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
   useEffect(() => {
     if (isOpen) {
       setPendingChanges(new Map());
-      setSearchTerm('');
+      setSearchTerm("");
       setShowAddForm(false);
     }
   }, [isOpen]);
@@ -24,19 +31,23 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
   if (!isOpen) return null;
 
   const tabs = [
-    { id: 'cspm', label: 'CSPM' },
-    { id: 'cwpp', label: 'CWPP' },
-    { id: 'registry', label: 'Registry' }
+    { id: "cspm", label: "CSPM" },
+    { id: "cwpp", label: "CWPP" },
+    { id: "registry", label: "Registry" },
   ];
 
   // Get all widgets with their category info
-  const allWidgets = categories.flatMap(cat =>
-    cat.widgets.map(w => ({ ...w, categoryId: cat.id, categoryName: cat.name }))
+  const allWidgets = categories.flatMap((cat) =>
+    cat.widgets.map((w) => ({
+      ...w,
+      categoryId: cat.id,
+      categoryName: cat.name,
+    }))
   );
 
   // Filter widgets based on search term and active tab
-  const filteredWidgets = allWidgets.filter(w => {
-    const matchesSearch = searchTerm 
+  const filteredWidgets = allWidgets.filter((w) => {
+    const matchesSearch = searchTerm
       ? w.name.toLowerCase().includes(searchTerm.toLowerCase())
       : true;
     const matchesTab = w.categoryId === activeTab;
@@ -45,23 +56,23 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
 
   const isWidgetChecked = (categoryId, widgetId) => {
     const key = `${categoryId}|||${widgetId}`;
-    
+
     // Check if there's a pending change for this widget
     if (pendingChanges.has(key)) {
       return pendingChanges.get(key);
     }
-    
+
     // Otherwise check the current state
-    const category = state.categories.find(c => c.id === categoryId);
-    return category?.widgets.some(w => w.id === widgetId) || false;
+    const category = state.categories.find((c) => c.id === categoryId);
+    return category?.widgets.some((w) => w.id === widgetId) || false;
   };
 
   const handleToggleCheckbox = (categoryId, widget) => {
     const key = `${categoryId}|||${widget.id}`;
     const currentState = isWidgetChecked(categoryId, widget.id);
-    
+
     // Store the pending change
-    setPendingChanges(prev => {
+    setPendingChanges((prev) => {
       const newChanges = new Map(prev);
       newChanges.set(key, !currentState);
       return newChanges;
@@ -70,7 +81,7 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
 
   const handleAddNewWidget = () => {
     if (!newWidget.name.trim() || !newWidget.text.trim()) {
-      alert('Please fill in both widget name and text');
+      alert("Please fill in both widget name and text");
       return;
     }
 
@@ -78,49 +89,52 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
       id: `custom-${Date.now()}`,
       name: newWidget.name.trim(),
       text: newWidget.text.trim(),
-      type: newWidget.type
+      type: newWidget.type,
     };
 
     onAddWidget(activeTab, widget);
-    
+
     // Reset form
-    setNewWidget({ name: '', text: '', type: 'empty' });
+    setNewWidget({ name: "", text: "", type: "empty" });
     setShowAddForm(false);
   };
 
   const handleConfirm = () => {
     // Apply all pending changes
     pendingChanges.forEach((shouldBeChecked, key) => {
-      const [categoryId, widgetId] = key.split('|||');
-      const category = state.categories.find(c => c.id === categoryId);
-      const widget = allWidgets.find(w => w.id === widgetId && w.categoryId === categoryId);
-      
+      const [categoryId, widgetId] = key.split("|||");
+      const category = state.categories.find((c) => c.id === categoryId);
+      const widget = allWidgets.find(
+        (w) => w.id === widgetId && w.categoryId === categoryId
+      );
+
       if (widget) {
-        const currentlyChecked = category?.widgets.some(w => w.id === widgetId) || false;
-        
+        const currentlyChecked =
+          category?.widgets.some((w) => w.id === widgetId) || false;
+
         // Only toggle if the state needs to change
         if (currentlyChecked !== shouldBeChecked) {
           onToggleWidget(categoryId, widget);
         }
       }
     });
-    
+
     // Reset and close
     setPendingChanges(new Map());
-    setSearchTerm('');
+    setSearchTerm("");
     setShowAddForm(false);
     onClose();
   };
 
   const handleCancel = () => {
     setPendingChanges(new Map());
-    setSearchTerm('');
+    setSearchTerm("");
     setShowAddForm(false);
-    setNewWidget({ name: '', text: '', type: 'empty' });
+    setNewWidget({ name: "", text: "", type: "empty" });
     onClose();
   };
 
-  const activeCategory = categories.find(c => c.id === activeTab);
+  const activeCategory = categories.find((c) => c.id === activeTab);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -128,8 +142,8 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b bg-blue-900 text-white">
           <h2 className="font-semibold text-lg">Add Widget</h2>
-          <button 
-            onClick={handleCancel} 
+          <button
+            onClick={handleCancel}
             className="p-1 hover:bg-blue-800 rounded transition-colors"
           >
             <X size={20} />
@@ -141,10 +155,10 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
           <p className="text-sm mb-4 text-gray-600">
             Personalize your dashboard by adding the following widgets
           </p>
-          
+
           {/* Tabs */}
           <div className="flex gap-2 mb-4 border-b">
-            {tabs.map(tab => (
+            {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => {
@@ -152,9 +166,9 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
                   setShowAddForm(false);
                 }}
                 className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  activeTab === tab.id 
-                    ? 'text-blue-600 border-b-2 border-blue-600' 
-                    : 'text-gray-500 hover:text-gray-700'
+                  activeTab === tab.id
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-500 hover:text-gray-700"
                 }`}
               >
                 {tab.label}
@@ -198,7 +212,9 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
                   <input
                     type="text"
                     value={newWidget.name}
-                    onChange={(e) => setNewWidget({ ...newWidget, name: e.target.value })}
+                    onChange={(e) =>
+                      setNewWidget({ ...newWidget, name: e.target.value })
+                    }
                     placeholder="Enter widget name"
                     className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -210,7 +226,9 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
                   <input
                     type="text"
                     value={newWidget.text}
-                    onChange={(e) => setNewWidget({ ...newWidget, text: e.target.value })}
+                    onChange={(e) =>
+                      setNewWidget({ ...newWidget, text: e.target.value })
+                    }
                     placeholder="Enter widget description"
                     className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -221,7 +239,9 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
                   </label>
                   <select
                     value={newWidget.type}
-                    onChange={(e) => setNewWidget({ ...newWidget, type: e.target.value })}
+                    onChange={(e) =>
+                      setNewWidget({ ...newWidget, type: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="empty">Empty (No Graph)</option>
@@ -239,7 +259,7 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
                   <button
                     onClick={() => {
                       setShowAddForm(false);
-                      setNewWidget({ name: '', text: '', type: 'empty' });
+                      setNewWidget({ name: "", text: "", type: "empty" });
                     }}
                     className="px-4 py-2 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300 transition-colors"
                   >
@@ -257,25 +277,33 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
             </h3>
             {filteredWidgets.length === 0 ? (
               <p className="text-sm text-gray-500 text-center py-4">
-                {searchTerm ? 'No widgets found matching your search' : 'No widgets available'}
+                {searchTerm
+                  ? "No widgets found matching your search"
+                  : "No widgets available"}
               </p>
             ) : (
-              filteredWidgets.map(widget => {
+              filteredWidgets.map((widget) => {
                 const checked = isWidgetChecked(widget.categoryId, widget.id);
                 return (
-                  <label 
-                    key={widget.id} 
+                  <label
+                    key={widget.id}
                     className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                   >
                     <input
                       type="checkbox"
                       checked={checked}
-                      onChange={() => handleToggleCheckbox(widget.categoryId, widget)}
+                      onChange={() =>
+                        handleToggleCheckbox(widget.categoryId, widget)
+                      }
                       className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                     />
                     <div className="flex-1">
-                      <span className="text-sm font-medium text-gray-800">{widget.name}</span>
-                      <p className="text-xs text-gray-500 mt-0.5">{widget.text}</p>
+                      <span className="text-sm font-medium text-gray-800">
+                        {widget.name}
+                      </span>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {widget.text}
+                      </p>
                     </div>
                   </label>
                 );

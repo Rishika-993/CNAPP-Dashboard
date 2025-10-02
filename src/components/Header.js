@@ -1,4 +1,3 @@
-import React from "react";
 import { Search, Bell, User, X, Menu } from "lucide-react";
 
 const Header = ({ searchTerm, setSearchTerm }) => {
@@ -7,8 +6,12 @@ const Header = ({ searchTerm, setSearchTerm }) => {
       <div className="px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
         {/* Left side - Breadcrumb */}
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-          <span className="text-gray-400 text-xs sm:text-sm sm:inline">Home &gt;</span>
-          <span className="font-semibold text-sm sm:text-base whitespace-nowrap">Dashboard V2</span>
+          <span className="text-gray-400 text-xs sm:text-sm sm:inline">
+            Home &gt;
+          </span>
+          <span className="font-semibold text-sm sm:text-base whitespace-nowrap">
+            Dashboard V2
+          </span>
         </div>
 
         {/* Right side - Search and Icons */}

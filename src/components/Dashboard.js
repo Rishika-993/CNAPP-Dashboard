@@ -1,4 +1,4 @@
-import React, { useReducer, useState } from "react";
+import { useReducer, useState } from "react";
 import Header from "./Header";
 import Widget from "./Widget";
 import AddWidgetModal from "./AddWidgetModal";
@@ -23,7 +23,6 @@ const Dashboard = () => {
     dispatch({ type: "ADD_WIDGET", categoryId, widget });
   };
 
-  // Filter categories and widgets based on search term
   const filteredCategories = state.categories
     .map((category) => {
       const filteredWidgets = category.widgets.filter(
@@ -40,9 +39,7 @@ const Dashboard = () => {
       <Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
       <div className="p-4 sm:p-6 pt-20 md:pt-20">
-        {/* Header Section */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-          {/* Title */}
           <div className="flex-shrink-0">
             <h1 className="text-lg sm:text-xl font-bold text-gray-900">
               CNAPP Dashboard
@@ -54,7 +51,6 @@ const Dashboard = () => {
             )}
           </div>
 
-          {/* Action Buttons */}
           <div className="flex flex-wrap gap-2 sm:gap-3">
             <button
               onClick={() => setIsModalOpen(true)}
@@ -86,7 +82,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* No Results Message */}
         {searchTerm &&
         filteredCategories.every((cat) => cat.widgets.length === 0) ? (
           <div className="text-center py-12 px-4">
@@ -101,7 +96,6 @@ const Dashboard = () => {
             </button>
           </div>
         ) : (
-          /* Widget Categories */
           <div className="space-y-6">
             {filteredCategories.map((category) => (
               <div key={category.id}>
