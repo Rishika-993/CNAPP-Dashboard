@@ -10,6 +10,7 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
     text: '',
     type: 'empty'
   });
+  const [pendingChanges, setPendingChanges] = useState(new Map());
 
   if (!isOpen) return null;
 
@@ -33,7 +34,49 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
     return matchesSearch && matchesTab;
   });
 
+  const handleToggleCheckbox = (categoryId, widget) => {
+    const key = `${categoryId}|||${widget.id}`; // Use a unique separator
+    const currentState = isWidgetChecked(categoryId, widget.id);
+    
+    // Store the pending change
+    setPendingChanges(prev => {
+      const newChanges = new Map(prev);
+      newChanges.set(key, !currentState);
+      return newChanges;
+    });
+  };
+
+  const handleConfirm = () => {
+    // Apply all pending changes
+    pendingChanges.forEach((shouldBeChecked, key) => {
+      const [categoryId, widgetId] = key.split('|||'); // Match the separator
+      const category = state.categories.find(c => c.id === categoryId);
+      const widget = allWidgets.find(w => w.id === widgetId && w.categoryId === categoryId);
+      
+      if (widget) {
+        const currentlyChecked = category?.widgets.some(w => w.id === widgetId) || false;
+        
+        // Only toggle if the state needs to change
+        if (currentlyChecked !== shouldBeChecked) {
+          onToggleWidget(categoryId, widget);
+        }
+      }
+    });
+    
+    // Reset and close
+    setPendingChanges(new Map());
+    onClose();
+  };
+
   const isWidgetChecked = (categoryId, widgetId) => {
+    const key = `${categoryId}|||${widgetId}`; // Use the same separator
+    
+    // Check if there's a pending change for this widget
+    if (pendingChanges.has(key)) {
+      return pendingChanges.get(key);
+    }
+    
+    // Otherwise check the current state
     const category = state.categories.find(c => c.id === categoryId);
     return category?.widgets.some(w => w.id === widgetId) || false;
   };
@@ -164,7 +207,7 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
                   >
                     <option value="empty">Empty (No Graph)</option>
                     <option value="donut">Donut Chart</option>
-                    <option value="bar">Bar Chart</option>
+                    <option value="bar">Line Chart</option>
                   </select>
                 </div>
                 <div className="flex gap-2 pt-2">
@@ -208,7 +251,7 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
                     <input
                       type="checkbox"
                       checked={checked}
-                      onChange={() => onToggleWidget(widget.categoryId, widget)}
+                      onChange={() => handleToggleCheckbox(widget.categoryId, widget)}
                       className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                     />
                     <div className="flex-1">
@@ -231,7 +274,7 @@ const AddWidgetModal = ({ isOpen, onClose, categories, state, onToggleWidget, on
             Cancel
           </button>
           <button
-            onClick={onClose}
+            onClick={handleConfirm}
             className="px-5 py-2 text-sm bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition-colors font-medium"
           >
             Confirm
