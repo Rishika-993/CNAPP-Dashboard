@@ -18,6 +18,10 @@ const Dashboard = () => {
     dispatch({ type: 'TOGGLE_WIDGET', categoryId, widget });
   };
 
+  const handleAddWidget = (categoryId, widget) => {
+    dispatch({ type: 'ADD_WIDGET', categoryId, widget });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -84,6 +88,7 @@ const Dashboard = () => {
         categories={state.categories}
         state={state}
         onToggleWidget={handleToggleWidget}
+        onAddWidget={handleAddWidget}
       />
     </div>
   );
